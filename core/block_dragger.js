@@ -106,8 +106,60 @@ Blockly.BlockDragger = function(block, workspace) {
    * @private
    */
   this.dragIconData_ = Blockly.BlockDragger.initIconData_(block);
+
+  this.throttledDragUpdate_ = Blockly.BlockDragger.createThrottledDragUpdate_(this);
 };
 
+/**
+ * Interval for throttling drag updates (in milliseconds).
+ * Adjust as needed for performance vs. smoothness.
+ * @const {number}
+ */
+Blockly.BlockDragger.DRAG_UPDATE_THROTTLE_MS = 50; // e.g., 50ms = 20 updates/sec max
+
+/**
+ * Helper to create the throttled function with the correct 'this' context.
+ * @param {!Blockly.BlockDragger} dragger The BlockDragger instance.
+ * @return {function(!goog.math.Coordinate)} The throttled function.
+ * @private
+ */
+Blockly.BlockDragger.createThrottledDragUpdate_ = function(dragger) {
+  // Basic throttle implementation
+  var inThrottle;
+  return function(newLoc) {
+    if (!inThrottle) {
+      dragger.dispatchDragUpdate_(newLoc);
+      inThrottle = true;
+      setTimeout(function(){inThrottle = false;}, Blockly.BlockDragger.DRAG_UPDATE_THROTTLE_MS);
+    }
+  };
+};
+
+/**
+ * Dispatches the actual 'blockDrag' custom event.
+ * @param {!goog.math.Coordinate} newLoc The current location in workspace coordinates.
+ * @private
+ */
+Blockly.BlockDragger.prototype.dispatchDragUpdate_ = function(newLoc) {
+  if (!Blockly.Events.isEnabled() || !this.draggingBlock_) {
+    return; // Don't dispatch if events are disabled or drag ended
+  }
+  try {
+    var eventData = {
+      triggerId: "blockDrag",
+      data: {
+        blockId: this.draggingBlock_.id,
+        x: newLoc.x,
+        y: newLoc.y,
+      }
+    };
+    var customEvent = new CustomEvent('collaboration_addon_trigger', { detail: eventData });
+    window.dispatchEvent(customEvent);
+    // console.log("Dispatched blockDrag:", eventData.data); // Debug log if needed
+  } catch (e) {
+    console.error("Error dispatching collaboration trigger for blockDrag:", e);
+  }
+};
 /**
  * Sever all links from this object.
  * @package
@@ -197,11 +249,14 @@ Blockly.BlockDragger.prototype.startBlockDrag = function(currentDragDeltaXY) {
  * @return {boolean} True if the event should be propagated, false if not.
  */
 Blockly.BlockDragger.prototype.dragBlock = function(e, currentDragDeltaXY) {
+  //console.log("drag moved", e, currentDragDeltaXY);
   var delta = this.pixelsToWorkspaceUnits_(currentDragDeltaXY);
   var newLoc = goog.math.Coordinate.sum(this.startXY_, delta);
 
   this.draggingBlock_.moveDuringDrag(newLoc);
   this.dragIcons_(delta);
+
+  this.throttledDragUpdate_(newLoc);
 
   this.deleteArea_ = this.workspace_.isDeleteArea(e);
   var isOutside = !this.workspace_.isInsideBlocksArea(e);
@@ -231,6 +286,24 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
   this.draggingBlock_.setMouseThroughStyle(false);
 
   Blockly.BlockAnimations.disconnectUiStop();
+
+  // Dispatch a final "drag end" event
+  if (Blockly.Events.isEnabled() && this.draggingBlock_) { // Check if block still exists
+    try {
+      var eventData = {
+        triggerId: "blockDragEnd",
+        data: {
+          blockId: this.draggingBlock_.id,
+        }
+      };
+      var customEvent = new CustomEvent('collaboration_addon_trigger', { detail: eventData });
+      window.dispatchEvent(customEvent);
+      // console.log("Dispatched blockDragEnd:", eventData.data); // Debug log if needed
+    } catch (e) {
+      console.error("Error dispatching collaboration trigger for blockDragEnd:", e);
+    }
+  }
+  this.currentDragXY_ = null; // Clear current drag position
 
   var delta = this.pixelsToWorkspaceUnits_(currentDragDeltaXY);
   var newLoc = goog.math.Coordinate.sum(this.startXY_, delta);
@@ -326,6 +399,7 @@ Blockly.BlockDragger.prototype.fireEndDragEvent_ = function(isOutside) {
  * @private
  */
 Blockly.BlockDragger.prototype.fireMoveEvent_ = function() {
+  //console.log("drag ended");
   var event = new Blockly.Events.BlockMove(this.draggingBlock_);
   event.oldCoordinate = this.startXY_;
   event.recordNew();

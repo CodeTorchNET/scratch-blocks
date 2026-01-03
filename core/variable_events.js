@@ -215,6 +215,7 @@ Blockly.Events.VarRename = function(variable, newName) {
   Blockly.Events.VarRename.superClass_.constructor.call(this, variable);
   this.oldName = variable.name;
   this.newName = newName;
+  this.variable = variable; //this is only used by the collaborative addon
 };
 goog.inherits(Blockly.Events.VarRename, Blockly.Events.VarBase);
 

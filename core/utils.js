@@ -359,6 +359,12 @@ Blockly.utils.replaceMessageReferences = function(message) {
 };
 
 /**
+ * Expose goog.math.Coordinate on the Blockly.utils namespace.
+ * @public
+ */
+Blockly.utils.Coordinate = goog.math.Coordinate;
+
+/**
  * Validates that any %{BKY_...} references in the message refer to keys of
  * the Blockly.Msg string table.
  * @param {string} message Text which might contain string table references.
