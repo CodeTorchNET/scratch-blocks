@@ -618,3 +618,27 @@ if (!goog.global['Blockly']) {
 goog.global['Blockly']['getMainWorkspace'] = Blockly.getMainWorkspace;
 goog.global['Blockly']['goog'] = goog;
 Blockly.goog = goog;
+
+/**
+ * Simple event emitter for internal collaboration hooks.
+ */
+Blockly.CollaborationEmitter = {
+  listeners: {},
+  on: function(event, callback) {
+    if (!this.listeners[event]) this.listeners[event] = [];
+    this.listeners[event].push(callback);
+  },
+  emit: function(event, data) {
+    if (this.listeners[event]) {
+      this.listeners[event].forEach(function(cb) {
+        cb(data);
+      });
+    }
+  },
+  off: function(event, callback) {
+    if (!this.listeners[event]) return;
+    this.listeners[event] = this.listeners[event].filter(function(cb) {
+      return cb !== callback;
+    });
+  }
+};

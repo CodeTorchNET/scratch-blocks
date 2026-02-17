@@ -141,24 +141,13 @@ Blockly.BlockDragger.createThrottledDragUpdate_ = function(dragger) {
  * @private
  */
 Blockly.BlockDragger.prototype.dispatchDragUpdate_ = function(newLoc) {
-  if (!Blockly.Events.isEnabled() || !this.draggingBlock_) {
-    return; // Don't dispatch if events are disabled or drag ended
-  }
-  try {
-    var eventData = {
-      triggerId: "blockDrag",
-      data: {
-        blockId: this.draggingBlock_.id,
-        x: newLoc.x,
-        y: newLoc.y,
-      }
-    };
-    var customEvent = new CustomEvent('collaboration_addon_trigger', { detail: eventData });
-    window.dispatchEvent(customEvent);
-    // console.log("Dispatched blockDrag:", eventData.data); // Debug log if needed
-  } catch (e) {
-    console.error("Error dispatching collaboration trigger for blockDrag:", e);
-  }
+  if (!Blockly.Events.isEnabled() || !this.draggingBlock_) return;
+
+  Blockly.CollaborationEmitter.emit('blockDrag', {
+    blockId: this.draggingBlock_.id,
+    x: newLoc.x,
+    y: newLoc.y,
+  });
 };
 /**
  * Sever all links from this object.
@@ -289,19 +278,9 @@ Blockly.BlockDragger.prototype.endBlockDrag = function(e, currentDragDeltaXY) {
 
   // Dispatch a final "drag end" event
   if (Blockly.Events.isEnabled() && this.draggingBlock_) { // Check if block still exists
-    try {
-      var eventData = {
-        triggerId: "blockDragEnd",
-        data: {
-          blockId: this.draggingBlock_.id,
-        }
-      };
-      var customEvent = new CustomEvent('collaboration_addon_trigger', { detail: eventData });
-      window.dispatchEvent(customEvent);
-      // console.log("Dispatched blockDragEnd:", eventData.data); // Debug log if needed
-    } catch (e) {
-      console.error("Error dispatching collaboration trigger for blockDragEnd:", e);
-    }
+    Blockly.CollaborationEmitter.emit('blockDragEnd', {
+      blockId: this.draggingBlock_.id
+    });
   }
   this.currentDragXY_ = null; // Clear current drag position
 
