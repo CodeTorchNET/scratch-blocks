@@ -565,9 +565,11 @@ Blockly.Xml.appendDomToWorkspace = function(xml, workspace) {
  * workspace.
  * @param {!Element} xmlBlock XML block element.
  * @param {!Blockly.Workspace} workspace The workspace.
+ * @param {string} uniqueCommentID (used for logging)
  * @return {!Blockly.Block} The root block created.
  */
-Blockly.Xml.domToBlock = function(xmlBlock, workspace, uniqueCommentID="unapplicable") {
+Blockly.Xml.domToBlock = function(xmlBlock, workspace, uniqueCommentID) {
+  if (typeof uniqueCommentID === 'undefined') uniqueCommentID = "unapplicable";
   if (xmlBlock instanceof Blockly.Workspace) {
     var swap = xmlBlock;
     xmlBlock = workspace;
@@ -654,10 +656,12 @@ Blockly.Xml.domToVariables = function(xmlVariables, workspace) {
  * workspace.
  * @param {!Element} xmlBlock XML block element.
  * @param {!Blockly.Workspace} workspace The workspace.
+ * @param {string} uniqueCommentID (used for logging)
  * @return {!Blockly.Block} The root block created.
  * @private
  */
-Blockly.Xml.domToBlockHeadless_ = function(xmlBlock, workspace,uniqueCommentID="unapplicable") {
+Blockly.Xml.domToBlockHeadless_ = function(xmlBlock, workspace, uniqueCommentID) {
+  if (typeof uniqueCommentID === 'undefined') uniqueCommentID = "unapplicable";
   var block = null;
   var prototypeName = xmlBlock.getAttribute('type');
   goog.asserts.assert(
@@ -749,7 +753,15 @@ Blockly.Xml.domToBlockHeadless_ = function(xmlBlock, workspace,uniqueCommentID="
         if (!input) {
           console.warn('Ignoring non-existent input ' + name + ' in block ' +
                        prototypeName);
-          window.dispatchEvent(new CustomEvent('blockError', {detail: {uniqueCommentID:uniqueCommentID, block: block, source: "1", error: 'Ignoring non-existent input ' + name + ' in block ' + prototypeName}}));
+          window.dispatchEvent(new CustomEvent('blockError', {
+            detail: {
+              uniqueCommentID: uniqueCommentID,
+              block: block,
+              source: "1",
+              error: 'Ignoring non-existent input ' + name + ' in block ' + prototypeName
+            }
+          }
+          ));
           break;
         }
         if (childShadowElement) {
@@ -873,14 +885,24 @@ Blockly.Xml.domToFieldVariable_ = function(workspace, xml, text, field) {
  * @param {!Blockly.Block} block The block that is currently being deserialized.
  * @param {string} fieldName The name of the field on the block.
  * @param {!Element} xml The field tag to decode.
+ * @param {string} uniqueCommentID (used for logging)
  * @private
  */
-Blockly.Xml.domToField_ = function(block, fieldName, xml,uniqueCommentID="unapplicable") {
+Blockly.Xml.domToField_ = function(block, fieldName, xml, uniqueCommentID) {
+  if (typeof uniqueCommentID === 'undefined') uniqueCommentID = "unapplicable";
   var field = block.getField(fieldName);
   if (!field) {
     console.warn('Ignoring non-existent field ' + fieldName + ' in block ' +
                  block.type);
-    window.dispatchEvent(new CustomEvent('blockError', {detail: {block: block,uniqueCommentID:uniqueCommentID, source: "2", error: 'Ignoring non-existent field ' + fieldName + ' in block ' + block.type}}));
+    window.dispatchEvent(new CustomEvent('blockError', {
+      detail: {
+        block: block,
+        uniqueCommentID: uniqueCommentID,
+        source: "2",
+        error: 'Ignoring non-existent field ' + fieldName + ' in block ' + block.type
+      }
+    }
+    ));
     return;
   }
 

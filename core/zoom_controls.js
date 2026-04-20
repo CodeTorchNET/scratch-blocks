@@ -350,4 +350,4 @@ Blockly.ZoomControls.prototype.createAISvg_ = function() {
     e.stopPropagation();  // Don't start a workspace scroll.
     e.preventDefault();  // Stop double-clicking from selecting text.
   });
-}
+};
