@@ -1,0 +1,50 @@
+name: build-and-push
+on:
+  push:
+    branches:
+      - develop
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Build
+        run: |
+          npm ci
+          npm run prepublish
+
+      - name: Push to develop-builds
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -B develop-builds
+          git add -f blockly_compressed_horizontal.js
+          git add -f blockly_compressed_vertical.js
+          git add -f blockly_uncompressed_horizontal.js
+          git add -f blockly_uncompressed_vertical.js
+          git add -f blocks_compressed_horizontal.js  
+          git add -f blocks_compressed_vertical.js
+          git add -f blocks_compressed.js
+
+          git commit -m "Automated build for ${GITHUB_SHA}"
+          git push origin develop-builds --force
