@@ -134,7 +134,9 @@ Blockly.ZoomControls.prototype.createDom = function() {
   this.createZoomOutSvg_();
   this.createZoomInSvg_();
   this.createZoomResetSvg_();
-  this.createAISvg_();
+  if (this.workspace_.options.showAIButton) {
+    this.createAISvg_();
+  }
   return this.svgGroup_;
 };
 

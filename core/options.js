@@ -132,6 +132,7 @@ Blockly.Options = function(options) {
   this.hasCss = hasCss;
   this.horizontalLayout = horizontalLayout;
   this.languageTree = languageTree;
+  this.showAIButton = !!options['showAIButton'];
   this.gridOptions = Blockly.Options.parseGridOptions_(options);
   this.zoomOptions = Blockly.Options.parseZoomOptions_(options);
   this.toolboxPosition = toolboxPosition;
