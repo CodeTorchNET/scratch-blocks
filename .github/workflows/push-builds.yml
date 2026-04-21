@@ -45,7 +45,7 @@ jobs:
           git add -f blocks_compressed_horizontal.js  
           git add -f blocks_compressed_vertical.js
           git add -f blocks_compressed.js
-          git add -f msg/*
+          git add -f shim/*
 
           git commit -m "Automated build for ${GITHUB_SHA}"
           git push origin develop-builds --force
