@@ -504,6 +504,10 @@ Blockly.Variables.renameVariable = function(workspace, variable,
         var additionalVarNames = variable.isLocal ? [] : additionalVars;
         var validatedText = validate(newName, workspace, additionalVarNames, variable.isCloud);
         if (validatedText) {
+          // (collaboration) Somebody else may have deleted this variable while the dialog was open.
+          if (!workspace.getVariableById(variable.getId())) {
+            return;
+          }
           workspace.renameVariableById(variable.getId(), validatedText);
           if (opt_callback) {
             opt_callback(newName);
