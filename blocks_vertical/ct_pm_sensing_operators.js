@@ -340,6 +340,9 @@ goog.require('Blockly.ScratchBlocks.VerticalExtensions');
       return json('CT_PM_PLAIN', [{"type": "field_label_serializable", "name": "VALUE", "text": ""}],
           ["colours_more"], {"output": Blockly.CtPm.LOCAL_REF_CHECK});
     },
+    'procedures_ct_locals': function() {
+      return json('CT_PM_PROCEDURES_SCRIPTVARS', [], ["colours_more", "shape_statement"]);
+    },
     'procedures_ct_setlocal': function() {
       return json('CT_PM_PROCEDURES_SETLOCAL',
           [arg.value('PARAM', Blockly.CtPm.LOCAL_REF_CHECK), arg.value('VALUE')],

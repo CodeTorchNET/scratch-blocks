@@ -7,6 +7,7 @@ goog.provide('Blockly.CtPm.Ext');
 
 goog.require('Blockly.Block');
 goog.require('Blockly.CtPm');
+goog.require('Blockly.CtFunctions');
 
 (function() {
   var jsonInit = Blockly.Block.prototype.jsonInit;
@@ -22,6 +23,12 @@ goog.require('Blockly.CtPm');
     }
     if (json['ctPmCReporter']) {
       this.ctPmCReporter_ = true;
+    }
+    if (json['ctFunctions']) {
+      Blockly.CtFunctions.init(this, json['ctFunctions']);
+    }
+    if (typeof this.type === 'string' && this.type.indexOf('ctFunctions_') === 0) {
+      Blockly.CtFunctions.colourByCategory(this);
     }
   };
 })();

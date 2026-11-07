@@ -21,11 +21,82 @@ goog.require('goog.string');
  */
 Blockly.CtPm.setWorkspaceOptions = function(workspace, options) {
   options = options || {};
+  var wasSnap = Blockly.CtPm.isSnap(workspace);
   workspace.ctPmOptions_ = {
     advanced: !!options.advanced,
     loose: !!options.loose,
-    anyType: !!options.anyType
+    anyType: !!options.anyType,
+    essentials: !!options.essentials,
+    snap: !!options.snap
   };
+  if (wasSnap !== Blockly.CtPm.isSnap(workspace) && workspace.rendered) {
+    var redraw = function(ws) {
+      ws.getAllBlocks().reverse().forEach(function(block) {
+        if (block.rendered) block.render(false);
+      });
+    };
+    redraw(workspace);
+    var flyout = workspace.getFlyout && workspace.getFlyout();
+    if (flyout && flyout.getWorkspace()) {
+      redraw(flyout.getWorkspace());
+      if (flyout.reflow) flyout.reflow();
+    }
+  }
+};
+
+/**
+ * @param {Blockly.Workspace} workspace workspace
+ * @return {boolean} True if the project has Snap related behavior on
+ */
+Blockly.CtPm.isSnap = function(workspace) {
+  var ws = workspace && workspace.isFlyout && workspace.targetWorkspace ? workspace.targetWorkspace : workspace;
+  return !!(ws && ws.ctPmOptions_ && ws.ctPmOptions_.snap);
+};
+
+/**
+ * Snap related behavior.
+ * @param {!Blockly.Workspace} workspace The main workspace
+ * @param {string} xml xml
+ */
+Blockly.CtPm.setSnapDataBlocks = function(workspace, xml) {
+  workspace.ctSnapDataXml_ = xml || '';
+};
+
+/**
+ * Appends the Snap blocks of the Variables flyout.
+ * @param {!Array.<!Element>} xmlList The flyout's XML so far
+ * @param {!Blockly.Workspace} workspace The workspace the flyout is for
+ * @private
+ */
+Blockly.CtPm.addSnapDataBlocks_ = function(xmlList, workspace) {
+  var xml = workspace && workspace.ctSnapDataXml_;
+  if (!xml) return;
+  var dom = Blockly.Xml.textToDom('<xml>' + xml + '</xml>');
+  Blockly.DataCategory.addSep(xmlList);
+  for (var child = dom.firstChild; child; child = child.nextSibling) {
+    if (child.nodeType === 1) xmlList.push(child);
+  }
+};
+
+/**
+ * @param {Blockly.Workspace} workspace workspace
+ * @return {boolean} True if the palette shows only the Essentials level of the Advanced blocks
+ */
+Blockly.CtPm.isEssentials = function(workspace) {
+  return !!(workspace && workspace.ctPmOptions_ && workspace.ctPmOptions_.essentials);
+};
+
+/**
+ * The advanced list blocks of the Variables flyout shown at the Essentials level.
+ * @const {!Object<string, boolean>}
+ */
+Blockly.CtPm.ESSENTIAL_LIST_BLOCKS = {
+  'data_reverselist': true,
+  'data_filterlist': true,
+  'data_listforeachitem': true,
+  'data_listforeachnum': true,
+  'data_amountinlist': true,
+  'data_listisempty': true
 };
 
 /**
@@ -62,7 +133,7 @@ Blockly.CtPm.SWITCH_CASE_CHECK = 'switchCase';
  * Checks that only connect to each other.
  * @const {!Array<string>}
  */
-Blockly.CtPm.EXCLUSIVE_CHECKS = [Blockly.CtPm.SWITCH_CASE_CHECK, 'ctPmArgumentCommand'];
+Blockly.CtPm.EXCLUSIVE_CHECKS = [Blockly.CtPm.SWITCH_CASE_CHECK, 'ctPmArgumentCommand', 'ctFunctionsParamDecl'];
 
 /**
  * Check of a custom block's local variable reporter.
@@ -125,6 +196,7 @@ Blockly.CtPm.checkType = function(a, b) {
     if (!Blockly.CtPm.inDragCheck_) return true;
     var workspace = a.getSourceBlock() && a.getSourceBlock().workspace;
     if (Blockly.CtPm.isAnyType(workspace)) return true;
+    if (Blockly.CtPm.hasCheck_(typed.input, Blockly.CtPm.TYPE_PREFIX + 'Array')) return true;
     var outputBlock = typed.output.getSourceBlock();
     if (Blockly.CtPm.hasTypedCheck_(typed.input) && outputBlock &&
         Blockly.CtPm.UNTYPED_OUTPUTS[outputBlock.type] === true) {
@@ -148,7 +220,7 @@ Blockly.CtPm.checkType = function(a, b) {
     }
     if (input && Blockly.CtPm.hasCheck_(input, 'Boolean') &&
         (Blockly.CtPm.hasCheck_(output, 'String') || Blockly.CtPm.hasCheck_(output, 'Number') ||
-        Blockly.CtPm.hasTypedCheck_(output))) {
+        Blockly.CtPm.hasCheck_(output, true) || Blockly.CtPm.hasTypedCheck_(output))) {
       return true;
     }
   }
@@ -168,7 +240,8 @@ Blockly.CtPm.TYPE_PREFIX = 'ctPmType:';
 Blockly.CtPm.UNTYPED_OUTPUTS = {
   'data_variable': true,
   'argument_reporter_string_number': true,
-  'argument_reporter_local': true
+  'argument_reporter_local': true,
+  'data_listcontents': true
 };
 
 /**
@@ -277,6 +350,7 @@ Blockly.CtPm.DRAG_DUPLICATE_SHADOWS = {
  * @param {!Blockly.Workspace} workspace The workspace the flyout is for
  */
 Blockly.CtPm.addDataCategoryBlocks = function(xmlList, workspace) {
+  Blockly.CtPm.addSnapDataBlocks_(xmlList, workspace);
   if (!Blockly.CtPm.isAdvanced(workspace)) {
     return;
   }
@@ -295,11 +369,22 @@ Blockly.CtPm.addDataCategoryBlocks = function(xmlList, workspace) {
   };
   var listField = '<field name="LIST" id="' + esc(list.getId()) + '" variabletype="list">' +
       esc(list.name) + '</field>';
+  var essentials = Blockly.CtPm.isEssentials(workspace);
+  var pendingSep = false;
   var add = function(xml) {
+    var type = /type="([^"]+)"/.exec(xml);
+    var snapOn = !!workspace.ctSnapDataXml_;
+    if (essentials && type && !Blockly.CtPm.ESSENTIAL_LIST_BLOCKS[type[1]] &&
+        !(snapOn && type[1] === 'data_arraylist')) return;
+    if (snapOn && type && (type[1] === 'data_listarray' || type[1] === 'data_filterlist')) return;
+    if (pendingSep) {
+      Blockly.DataCategory.addSep(xmlList);
+      pendingSep = false;
+    }
     xmlList.push(Blockly.Xml.textToDom('<xml>' + xml + '</xml>').firstChild);
   };
   var sep = function() {
-    Blockly.DataCategory.addSep(xmlList);
+    pendingSep = true;
   };
 
   sep();

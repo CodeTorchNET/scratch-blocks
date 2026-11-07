@@ -240,7 +240,14 @@ goog.require('Blockly.ScratchMsgs');
     CT_PM_PROCEDURES_SETLOCAL: 'set %1 to %2',
     CT_PM_PROCEDURES_CHANGELOCAL: 'change %1 by %2',
     CT_PM_PROCEDURES_LOCALEDITOR: 'local %1',
-    CT_PM_PROCEDURES_LOCAL_DEFAULT: 'local'
+    CT_PM_PROCEDURES_LOCAL_DEFAULT: 'local',
+    CT_PM_PROCEDURES_SCRIPTVARS: 'script variables',
+    CT_PM_DATA_VARIABLEOF: 'variable %1',
+    CT_PM_DATA_DEFAULT_LIST: 'my list',
+    CT_PM_DATA_DEFAULT_VARIABLE: 'my variable',
+    CT_FN_INPUT_NAMES: 'input names:',
+    CT_FN_WITH_INPUTS: 'with inputs',
+    CT_FN_RENAME_PROMPT: 'Rename "%1" to:'
   };
   for (var key in messages) {
     if (Blockly.Msg[key] === undefined) {

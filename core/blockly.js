@@ -37,6 +37,8 @@ goog.require('Blockly.CtPm.Msg');
 goog.require('Blockly.CtPm.MsgI18n');
 goog.require('Blockly.CtPm.Procedures');
 goog.require('Blockly.CtPm.Ext');
+goog.require('Blockly.CtFunctions');
+goog.require('Blockly.CtDynamicSlots');
 goog.require('Blockly.CtPm.Shapes');
 goog.require('Blockly.Events');
 goog.require('Blockly.FieldAngle');

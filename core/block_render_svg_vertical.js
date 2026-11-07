@@ -631,6 +631,7 @@ Blockly.BlockSvg.prototype.getHeightWidth = function() {
  *   If true, also render block's parent, grandparent, etc.  Defaults to true.
  */
 Blockly.BlockSvg.prototype.render = function(opt_bubble) {
+  Blockly.CtPm.Shapes.syncArrayWords(this);
   Blockly.Field.startCache();
   this.rendered = true;
 
@@ -1124,6 +1125,8 @@ Blockly.BlockSvg.prototype.computeOutputPadding_ = function(inputRows) {
     otherShape = 0;
   }
   row.paddingEnd += Blockly.BlockSvg.SHAPE_IN_SHAPE_PADDING[shape][otherShape];
+  Blockly.CtPm.Shapes.padCapped(this, row, shape);
+  Blockly.CtPm.Shapes.padSquareInRound(this, row, shape);
 };
 
 /**
@@ -1338,7 +1341,7 @@ Blockly.BlockSvg.prototype.renderDrawRight_ = function(steps,
       if (!this.edgeShape_ && y > 0 && (Blockly.CtPm.Procedures.startsSection(row) &&
           inputRows[y - 1].type == Blockly.NEXT_STATEMENT ||
           row[0].ctPmLocalId_ && inputRows[y - 1].type == Blockly.BlockSvg.INLINE &&
-          inputRows[y - 1][0].ctPmLocalId_)) {
+          (inputRows[y - 1][0].ctPmLocalId_ || this.type == 'procedures_ct_locals'))) {
         steps.push('v', 2 * Blockly.BlockSvg.CORNER_RADIUS);
       } else if (!this.edgeShape_) {
         // Include corner radius in drawing the horizontal line.

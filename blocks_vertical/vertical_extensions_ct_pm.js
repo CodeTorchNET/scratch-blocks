@@ -160,6 +160,15 @@ goog.require('Blockly.ScratchBlocks.VerticalExtensions');
         [Blockly.CtPm.LOCAL_REF_CHECK, Blockly.CtPm.Procedures.LOCAL_DECL_CHECK] : Blockly.CtPm.LOCAL_REF_CHECK);
   };
 
+  var scriptLocals = Blockly.Blocks['procedures_ct_locals'];
+  var scriptLocalsInit = scriptLocals.init;
+  scriptLocals.init = function() {
+    scriptLocalsInit.call(this);
+    this.ctLocals_ = [];
+    var mixin = Blockly.CtPm.Procedures.ScriptLocals;
+    for (var key in mixin) this[key] = mixin[key];
+    Blockly.CtPm.ensureButtons(this);
+  };
   Blockly.Blocks['procedures_definition'].mutationToDom = Blockly.CtPm.Procedures.DefinitionLocals.mutationToDom;
   Blockly.Blocks['procedures_definition'].domToMutation = Blockly.CtPm.Procedures.DefinitionLocals.domToMutation;
   var declaration = Blockly.Blocks['procedures_declaration'];

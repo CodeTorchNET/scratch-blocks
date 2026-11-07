@@ -535,7 +535,10 @@ Blockly.CtPm.Procedures.setReporterConnections = function(block, shadow) {
 Blockly.CtPm.Procedures.isStrayShadow_ = function(block) {
   var parent = block.getParent();
   if (!parent) return true;
-  if (block.type === 'argument_reporter_local') return parent.type !== 'procedures_definition';
+  if (block.type === 'argument_reporter_local') {
+    return parent.type !== 'procedures_definition' && parent.type !== 'procedures_ct_locals';
+  }
+  if (block.type === 'ctFunctions_param') return !parent.ctFnSpec_;
   return block.type.indexOf('argument_reporter_') === 0 && parent.type !== 'procedures_prototype';
 };
 
@@ -802,11 +805,7 @@ Blockly.CtPm.Procedures.applyLocalsFromMutation = function(defineBlock, mutation
  * @param {!Element} mutation mutation
  */
 Blockly.CtPm.Procedures.addLocalsForEditor = function(prototypeBlock, mutation) {
-  var defineBlock = prototypeBlock.getParent();
-  var locals = (defineBlock && defineBlock.ctLocals_) || [];
-  if (locals.length || Blockly.CtPm.isAdvanced(prototypeBlock.workspace)) {
-    mutation.setAttribute('ctlocals', JSON.stringify(locals));
-  }
+  // ignore
 };
 
 /**
@@ -1001,7 +1000,107 @@ Blockly.CtPm.Procedures.addLocalBlocks = function(xmlList, workspace) {
         '<shadow type="' + (value === '' ? 'text' : 'math_number') + '"><field name="' +
         (value === '' ? 'TEXT' : 'NUM') + '">' + value + '</field></shadow></value></block></xml>').firstChild;
   };
-  xmlList.splice(at, 0, make('procedures_ct_setlocal', ''), make('procedures_ct_changelocal', '1'));
+  var locals = Blockly.Xml.textToDom('<xml><block type="procedures_ct_locals" gap="12"></block></xml>').firstChild;
+  xmlList.splice(at, 0, locals, make('procedures_ct_setlocal', ''), make('procedures_ct_changelocal', '1'));
+};
+
+/**
+ * Methods of procedures_ct_locals.
+ */
+Blockly.CtPm.Procedures.ScriptLocals = {
+  mutationToDom: function() {
+    var container = document.createElement('mutation');
+    container.setAttribute('ctlocals', JSON.stringify(this.ctLocals_ || []));
+    return container;
+  },
+  domToMutation: function(xmlElement) {
+    this.ctLocals_ = Blockly.CtPm.Procedures.parseLocals(xmlElement.getAttribute('ctlocals'));
+    Blockly.CtPm.Procedures.syncDefinitionInputs(this);
+    Blockly.CtPm.ensureButtons(this);
+    Blockly.CtPm.rerender_(this);
+  },
+  ctPmGetState_: function() {
+    return {locals: (this.ctLocals_ || []).slice()};
+  },
+  ctPmNextState_: function(isAdding) {
+    var locals = (this.ctLocals_ || []).slice();
+    if (isAdding) {
+      var used = {};
+      locals.forEach(function(l) {
+        used[l.name] = true;
+      });
+      var name = 'a';
+      for (var i = 0; used[name]; i++) name = i < 25 ? String.fromCharCode(98 + i) : 'v' + i;
+      locals.push({id: Blockly.utils.genUid(), name: name});
+    } else {
+      if (!locals.length) return null;
+      locals.pop();
+    }
+    return {locals: locals};
+  },
+  ctPmRemovedInputs_: function(state) {
+    var kept = {};
+    state.locals.forEach(function(l) {
+      kept[l.id] = true;
+    });
+    var removed = [];
+    (this.ctLocals_ || []).forEach(function(l) {
+      if (!kept[l.id]) removed.push('LOCALREF_' + l.id, 'LOCALVAL_' + l.id);
+    });
+    return removed;
+  },
+  ctPmApplyState_: function(state) {
+    this.ctLocals_ = state.locals.slice();
+    Blockly.CtPm.Procedures.syncDefinitionInputs(this);
+    Blockly.CtPm.ensureButtons(this);
+  },
+  ctPmFillInputs_: function(oldState, state) {
+    var had = {};
+    oldState.locals.forEach(function(l) {
+      had[l.id] = true;
+    });
+    var block = this;
+    state.locals.forEach(function(l) {
+      if (had[l.id]) return;
+      Blockly.CtPm.fillShadow(block, 'LOCALREF_' + l.id, 'argument_reporter_local', 'VALUE', l.name);
+      Blockly.CtPm.fillShadow(block, 'LOCALVAL_' + l.id, 'text', 'TEXT', '0');
+    });
+  },
+  ctPmOnExpandButton_: function(isAdding) {
+    Blockly.CtPm.onExpandButton(this, isAdding);
+  }
+};
+
+/**
+ * Clicking a local's {name} in a script variables block renames it.
+ * @param {!Blockly.Block} shadow The argument_reporter_local shadow that was clicked
+ * @return {boolean} True if it was a script variable (and the prompt was shown)
+ */
+Blockly.CtPm.Procedures.renameScriptLocal = function(shadow) {
+  var owner = shadow.getParent();
+  if (!owner || owner.type !== 'procedures_ct_locals' || owner.isInFlyout || !owner.isEditable()) return false;
+  var id = null;
+  owner.inputList.forEach(function(input) {
+    if (input.connection && input.connection.targetBlock() === shadow && input.name.indexOf('LOCALREF_') === 0) {
+      id = input.name.slice('LOCALREF_'.length);
+    }
+  });
+  if (!id) return false;
+  var oldName = shadow.getFieldValue('VALUE');
+  Blockly.prompt(Blockly.Msg.CT_FN_RENAME_PROMPT.replace('%1', oldName), oldName, function(text) {
+    var name = text === null || text === undefined ? '' : String(text).trim();
+    if (!name || name === oldName || !owner.workspace) return;
+    var list = (owner.ctLocals_ || []).map(function(l) {
+      return {id: l.id, name: l.id === id ? name : l.name};
+    });
+    Blockly.Events.setGroup(true);
+    try {
+      Blockly.CtPm.Procedures.setLocals(owner, list);
+    } finally {
+      Blockly.Events.setGroup(false);
+    }
+  }, Blockly.Msg.RENAME_VARIABLE_MODAL_TITLE);
+  return true;
 };
 
 /**

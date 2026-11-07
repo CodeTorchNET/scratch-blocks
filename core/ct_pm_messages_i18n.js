@@ -231,7 +231,14 @@ Blockly.CtPm.Msg.locales = {
     "CT_PM_PROCEDURES_SETLOCAL": "setze %1 auf %2",
     "CT_PM_PROCEDURES_CHANGELOCAL": "ändere %1 um %2",
     "CT_PM_PROCEDURES_LOCALEDITOR": "lokal %1",
-    "CT_PM_PROCEDURES_LOCAL_DEFAULT": "lokal"
+    "CT_PM_PROCEDURES_LOCAL_DEFAULT": "lokal",
+    "CT_PM_PROCEDURES_SCRIPTVARS": "Skriptvariablen",
+    "CT_PM_DATA_VARIABLEOF": "Variable %1",
+    "CT_PM_DATA_DEFAULT_LIST": "meine Liste",
+    "CT_PM_DATA_DEFAULT_VARIABLE": "meine Variable",
+    "CT_FN_INPUT_NAMES": "Eingabenamen:",
+    "CT_FN_WITH_INPUTS": "mit Eingaben",
+    "CT_FN_RENAME_PROMPT": "„%1“ umbenennen in:"
   },
   "es": {
     "CT_PM_PLAIN": "%1",
@@ -455,7 +462,14 @@ Blockly.CtPm.Msg.locales = {
     "CT_PM_PROCEDURES_SETLOCAL": "fijar %1 a %2",
     "CT_PM_PROCEDURES_CHANGELOCAL": "sumar a %1 %2",
     "CT_PM_PROCEDURES_LOCALEDITOR": "local %1",
-    "CT_PM_PROCEDURES_LOCAL_DEFAULT": "local"
+    "CT_PM_PROCEDURES_LOCAL_DEFAULT": "local",
+    "CT_PM_PROCEDURES_SCRIPTVARS": "variables del programa",
+    "CT_PM_DATA_VARIABLEOF": "variable %1",
+    "CT_PM_DATA_DEFAULT_LIST": "mi lista",
+    "CT_PM_DATA_DEFAULT_VARIABLE": "mi variable",
+    "CT_FN_INPUT_NAMES": "nombres de entradas:",
+    "CT_FN_WITH_INPUTS": "con entradas",
+    "CT_FN_RENAME_PROMPT": "Cambiar el nombre de «%1» a:"
   },
   "fr": {
     "CT_PM_PLAIN": "%1",
@@ -679,7 +693,14 @@ Blockly.CtPm.Msg.locales = {
     "CT_PM_PROCEDURES_SETLOCAL": "mettre %1 à %2",
     "CT_PM_PROCEDURES_CHANGELOCAL": "ajouter %2 à %1",
     "CT_PM_PROCEDURES_LOCALEDITOR": "locale %1",
-    "CT_PM_PROCEDURES_LOCAL_DEFAULT": "locale"
+    "CT_PM_PROCEDURES_LOCAL_DEFAULT": "locale",
+    "CT_PM_PROCEDURES_SCRIPTVARS": "variables du script",
+    "CT_PM_DATA_VARIABLEOF": "variable %1",
+    "CT_PM_DATA_DEFAULT_LIST": "ma liste",
+    "CT_PM_DATA_DEFAULT_VARIABLE": "ma variable",
+    "CT_FN_INPUT_NAMES": "noms des entrées :",
+    "CT_FN_WITH_INPUTS": "avec les entrées",
+    "CT_FN_RENAME_PROMPT": "Renommer « %1 » en :"
   },
   "pt": {
     "CT_PM_PLAIN": "%1",
@@ -903,7 +924,14 @@ Blockly.CtPm.Msg.locales = {
     "CT_PM_PROCEDURES_SETLOCAL": "mude %1 para %2",
     "CT_PM_PROCEDURES_CHANGELOCAL": "adicione %2 a %1",
     "CT_PM_PROCEDURES_LOCALEDITOR": "local %1",
-    "CT_PM_PROCEDURES_LOCAL_DEFAULT": "local"
+    "CT_PM_PROCEDURES_LOCAL_DEFAULT": "local",
+    "CT_PM_PROCEDURES_SCRIPTVARS": "variáveis do script",
+    "CT_PM_DATA_VARIABLEOF": "variável %1",
+    "CT_PM_DATA_DEFAULT_LIST": "minha lista",
+    "CT_PM_DATA_DEFAULT_VARIABLE": "minha variável",
+    "CT_FN_INPUT_NAMES": "nomes das entradas:",
+    "CT_FN_WITH_INPUTS": "com entradas",
+    "CT_FN_RENAME_PROMPT": "Renomear \"%1\" para:"
   },
   "ru": {
     "CT_PM_PLAIN": "%1",
@@ -1127,7 +1155,14 @@ Blockly.CtPm.Msg.locales = {
     "CT_PM_PROCEDURES_SETLOCAL": "задать %1 значение %2",
     "CT_PM_PROCEDURES_CHANGELOCAL": "изменить %1 на %2",
     "CT_PM_PROCEDURES_LOCALEDITOR": "локальная %1",
-    "CT_PM_PROCEDURES_LOCAL_DEFAULT": "локальная"
+    "CT_PM_PROCEDURES_LOCAL_DEFAULT": "локальная",
+    "CT_PM_PROCEDURES_SCRIPTVARS": "переменные скрипта",
+    "CT_PM_DATA_VARIABLEOF": "переменная %1",
+    "CT_PM_DATA_DEFAULT_LIST": "мой список",
+    "CT_PM_DATA_DEFAULT_VARIABLE": "моя переменная",
+    "CT_FN_INPUT_NAMES": "имена входов:",
+    "CT_FN_WITH_INPUTS": "с входами",
+    "CT_FN_RENAME_PROMPT": "Переименовать «%1» в:"
   },
   "ar": {
     "CT_PM_PLAIN": "%1",
@@ -1351,7 +1386,14 @@ Blockly.CtPm.Msg.locales = {
     "CT_PM_PROCEDURES_SETLOCAL": "اجعل %1 مساويًا %2",
     "CT_PM_PROCEDURES_CHANGELOCAL": "غيّر %1 بمقدار %2",
     "CT_PM_PROCEDURES_LOCALEDITOR": "محلي %1",
-    "CT_PM_PROCEDURES_LOCAL_DEFAULT": "محلي"
+    "CT_PM_PROCEDURES_LOCAL_DEFAULT": "محلي",
+    "CT_PM_PROCEDURES_SCRIPTVARS": "متغيرات البرنامج",
+    "CT_PM_DATA_VARIABLEOF": "المتغير %1",
+    "CT_PM_DATA_DEFAULT_LIST": "قائمتي",
+    "CT_PM_DATA_DEFAULT_VARIABLE": "متغيري",
+    "CT_FN_INPUT_NAMES": "أسماء المدخلات:",
+    "CT_FN_WITH_INPUTS": "بالمدخلات",
+    "CT_FN_RENAME_PROMPT": "إعادة تسمية \"%1\" إلى:"
   },
   "bn": {
     "CT_PM_PLAIN": "%1",
@@ -1575,7 +1617,14 @@ Blockly.CtPm.Msg.locales = {
     "CT_PM_PROCEDURES_SETLOCAL": "%1 কে %2 করো",
     "CT_PM_PROCEDURES_CHANGELOCAL": "%1 কে %2 দ্বারা পরিবর্তন করো",
     "CT_PM_PROCEDURES_LOCALEDITOR": "স্থানীয় %1",
-    "CT_PM_PROCEDURES_LOCAL_DEFAULT": "স্থানীয়"
+    "CT_PM_PROCEDURES_LOCAL_DEFAULT": "স্থানীয়",
+    "CT_PM_PROCEDURES_SCRIPTVARS": "স্ক্রিপ্ট ভেরিয়েবল",
+    "CT_PM_DATA_VARIABLEOF": "ভেরিয়েবল %1",
+    "CT_PM_DATA_DEFAULT_LIST": "আমার তালিকা",
+    "CT_PM_DATA_DEFAULT_VARIABLE": "আমার ভেরিয়েবল",
+    "CT_FN_INPUT_NAMES": "ইনপুটের নাম:",
+    "CT_FN_WITH_INPUTS": "ইনপুটসহ",
+    "CT_FN_RENAME_PROMPT": "\"%1\"-এর নতুন নাম:"
   },
   "hi": {
     "CT_PM_PLAIN": "%1",
@@ -1799,7 +1848,14 @@ Blockly.CtPm.Msg.locales = {
     "CT_PM_PROCEDURES_SETLOCAL": "%1 को %2 पर सेट करें",
     "CT_PM_PROCEDURES_CHANGELOCAL": "%1 को %2 से बदलें",
     "CT_PM_PROCEDURES_LOCALEDITOR": "स्थानीय %1",
-    "CT_PM_PROCEDURES_LOCAL_DEFAULT": "स्थानीय"
+    "CT_PM_PROCEDURES_LOCAL_DEFAULT": "स्थानीय",
+    "CT_PM_PROCEDURES_SCRIPTVARS": "स्क्रिप्ट वेरिएबल",
+    "CT_PM_DATA_VARIABLEOF": "वेरिएबल %1",
+    "CT_PM_DATA_DEFAULT_LIST": "मेरी सूची",
+    "CT_PM_DATA_DEFAULT_VARIABLE": "मेरा वेरिएबल",
+    "CT_FN_INPUT_NAMES": "इनपुट के नाम:",
+    "CT_FN_WITH_INPUTS": "इनपुट के साथ",
+    "CT_FN_RENAME_PROMPT": "\"%1\" का नया नाम:"
   },
   "ja": {
     "CT_PM_PLAIN": "%1",
@@ -2023,7 +2079,14 @@ Blockly.CtPm.Msg.locales = {
     "CT_PM_PROCEDURES_SETLOCAL": "%1 を %2 にする",
     "CT_PM_PROCEDURES_CHANGELOCAL": "%1 を %2 ずつ変える",
     "CT_PM_PROCEDURES_LOCALEDITOR": "ローカル %1",
-    "CT_PM_PROCEDURES_LOCAL_DEFAULT": "ローカル"
+    "CT_PM_PROCEDURES_LOCAL_DEFAULT": "ローカル",
+    "CT_PM_PROCEDURES_SCRIPTVARS": "スクリプト変数",
+    "CT_PM_DATA_VARIABLEOF": "変数 %1",
+    "CT_PM_DATA_DEFAULT_LIST": "リスト",
+    "CT_PM_DATA_DEFAULT_VARIABLE": "変数",
+    "CT_FN_INPUT_NAMES": "入力名:",
+    "CT_FN_WITH_INPUTS": "入力つき",
+    "CT_FN_RENAME_PROMPT": "「%1」の新しい名前:"
   },
   "zh-cn": {
     "CT_PM_PLAIN": "%1",
@@ -2247,7 +2310,14 @@ Blockly.CtPm.Msg.locales = {
     "CT_PM_PROCEDURES_SETLOCAL": "将 %1 设为 %2",
     "CT_PM_PROCEDURES_CHANGELOCAL": "将 %1 增加 %2",
     "CT_PM_PROCEDURES_LOCALEDITOR": "局部 %1",
-    "CT_PM_PROCEDURES_LOCAL_DEFAULT": "局部"
+    "CT_PM_PROCEDURES_LOCAL_DEFAULT": "局部",
+    "CT_PM_PROCEDURES_SCRIPTVARS": "脚本变量",
+    "CT_PM_DATA_VARIABLEOF": "变量 %1",
+    "CT_PM_DATA_DEFAULT_LIST": "我的列表",
+    "CT_PM_DATA_DEFAULT_VARIABLE": "我的变量",
+    "CT_FN_INPUT_NAMES": "输入名称：",
+    "CT_FN_WITH_INPUTS": "输入为",
+    "CT_FN_RENAME_PROMPT": "将“%1”重命名为："
   }
 };
 /* eslint-enable max-len */

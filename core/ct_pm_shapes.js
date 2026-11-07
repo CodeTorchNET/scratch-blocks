@@ -24,11 +24,17 @@ Blockly.OUTPUT_SHAPE_LEAF = 4;
 Blockly.OUTPUT_SHAPE_OCTAGONAL = 6;
 
 /**
+ * Output shape.
+ * @const {number}
+ */
+Blockly.OUTPUT_SHAPE_ARRAY = 13;
+
+/**
  * Value type -> shape.
  * @const {!Object<string, number>}
  */
 Blockly.CtPm.Shapes.TYPE_SHAPES = {
-  'Array': Blockly.OUTPUT_SHAPE_SQUARE,
+  'Array': Blockly.OUTPUT_SHAPE_ARRAY,
   'Vector': Blockly.OUTPUT_SHAPE_LEAF,
   'Target': Blockly.OUTPUT_SHAPE_OCTAGONAL
 };
@@ -145,6 +151,47 @@ Blockly.CtPm.Shapes.SHAPES[Blockly.OUTPUT_SHAPE_CURLY] = {
   }
 };
 
+/**
+ * One bracket end of an array.
+ * @param {number} w w
+ * @param {number} dir dir
+ * @return {string} SVG path
+ * @private
+ */
+Blockly.CtPm.Shapes.bracketEnd_ = function(w, dir) {
+  var r = 0.55 * w;
+  var d = 0.3 * w;
+  var run = 2 * w - 2 * r;
+  var n = function(x) {
+    return Math.round(x * 100) / 100;
+  };
+  var arc = function(dx, dy) {
+    return 'a ' + n(r) + ' ' + n(r) + ' 0 0 1 ' + n(dx) + ' ' + n(dy);
+  };
+  return [
+    'h', n(dir * (w - r)), arc(dir * r, dir * r),
+    'q', n(-dir * 2 * d), n(dir * run / 2), '0', n(dir * run),
+    arc(-dir * r, dir * r), 'h', n(-dir * (w - r))
+  ].join(' ');
+};
+
+Blockly.CtPm.Shapes.SHAPES[Blockly.OUTPUT_SHAPE_ARRAY] = {
+  argType: 'square',
+  emptyInputWidth: 12 * Blockly.BlockSvg.GRID_UNIT,
+  emptyInputPath: (function() {
+    var h = Blockly.BlockSvg.INPUT_SHAPE_HEIGHT / 2;
+    var width = 12 * Blockly.BlockSvg.GRID_UNIT;
+    return 'M ' + h + ' 0 H ' + (width - h) + ' ' + Blockly.CtPm.Shapes.bracketEnd_(h, 1) + ' H ' + h + ' ' +
+        Blockly.CtPm.Shapes.bracketEnd_(h, -1) + ' z';
+  })(),
+  left: function(w) {
+    return Blockly.CtPm.Shapes.bracketEnd_(w, -1);
+  },
+  right: function(w) {
+    return Blockly.CtPm.Shapes.bracketEnd_(w, 1);
+  }
+};
+
 (function() {
   var u = Blockly.BlockSvg.GRID_UNIT;
   var table = Blockly.BlockSvg.SHAPE_IN_SHAPE_PADDING;
@@ -160,6 +207,15 @@ Blockly.CtPm.Shapes.SHAPES[Blockly.OUTPUT_SHAPE_CURLY] = {
     for (var inner in add[outer]) {
       if (!(inner in table[outer])) table[outer][inner] = add[outer][inner];
     }
+  }
+  var arr = Blockly.OUTPUT_SHAPE_ARRAY;
+  var sq = Blockly.OUTPUT_SHAPE_SQUARE;
+  table[arr] = table[arr] || {};
+  for (var k in table[sq]) {
+    if (!(k in table[arr])) table[arr][k] = table[sq][k] + 2 * u;
+  }
+  for (var o2 in table) {
+    if (!(arr in table[o2]) && sq in table[o2]) table[o2][arr] = table[o2][sq];
   }
   var curly = Blockly.OUTPUT_SHAPE_CURLY;
   var round = Blockly.OUTPUT_SHAPE_ROUND;
@@ -202,9 +258,10 @@ Blockly.CtPm.Shapes.notch = function(connection, side) {
 
 /**
  * @param {Array<string>} check A connection's check list
+ * @param {Blockly.Workspace=} opt_workspace opt_workspace
  * @return {?number} The shape of its value type, or null for the standard shape.
  */
-Blockly.CtPm.Shapes.typeShape = function(check) {
+Blockly.CtPm.Shapes.typeShape = function(check, opt_workspace) {
   if (!check) return null;
   if (check.indexOf(Blockly.CtPm.LOCAL_REF_CHECK) !== -1) return Blockly.OUTPUT_SHAPE_CURLY;
   var shape = null;
@@ -212,10 +269,41 @@ Blockly.CtPm.Shapes.typeShape = function(check) {
     var c = check[i];
     if (typeof c !== 'string' || c.indexOf(Blockly.CtPm.TYPE_PREFIX) !== 0) continue;
     if (shape !== null) return null;
-    shape = Blockly.CtPm.Shapes.TYPE_SHAPES[c.slice(Blockly.CtPm.TYPE_PREFIX.length)] || null;
+    var type = c.slice(Blockly.CtPm.TYPE_PREFIX.length);
+    shape = type === 'Array' && Blockly.CtPm.isSnap(opt_workspace) ? Blockly.OUTPUT_SHAPE_ROUND :
+        (Blockly.CtPm.Shapes.TYPE_SHAPES[type] || null);
     if (shape === null) return null;
   }
   return shape;
+};
+
+/**
+ * Blocks whose labels say "array".
+ */
+Blockly.CtPm.Shapes.ARRAY_WORD_BLOCKS_ = /^(jwArray_|data_arraylist$)/;
+
+/**
+ * With Snap related behavior an array is a list, so the blocks that say "array" say "list".
+ * @param {!Blockly.BlockSvg} block A block about to render
+ */
+Blockly.CtPm.Shapes.syncArrayWords = function(block) {
+  if (!Blockly.CtPm.Shapes.ARRAY_WORD_BLOCKS_.test(block.type)) return;
+  var snap = Blockly.CtPm.isSnap(block.workspace);
+  if ((block.ctPmListWords_ || false) === snap) return;
+  block.ctPmListWords_ = snap;
+  for (var i = 0; i < block.inputList.length; i++) {
+    var fields = block.inputList[i].fieldRow;
+    for (var j = 0; j < fields.length; j++) {
+      var field = fields[j];
+      if (!(field instanceof Blockly.FieldLabel)) continue;
+      if (field.ctPmArrayText_ === undefined) field.ctPmArrayText_ = field.getText();
+      var text = snap ? field.ctPmArrayText_.replace(/\barray\b/g, 'list').replace(/\bArray\b/g, 'List')
+          .replace(/\barrays\b/g, 'lists') : field.ctPmArrayText_;
+      if (text === field.text_) continue;
+      field.text_ = text;
+      field.size_.width = 0;
+    }
+  }
 };
 
 /**
@@ -244,11 +332,11 @@ Blockly.CtPm.Shapes.blockShape = function(block) {
   for (var i = 0; i < block.inputList.length; i++) {
     if (block.inputList[i].type === Blockly.NEXT_STATEMENT) return Blockly.OUTPUT_SHAPE_SQUARE;
   }
-  var own = Blockly.CtPm.Shapes.typeShape(output.check_);
+  var own = Blockly.CtPm.Shapes.typeShape(output.check_, block.workspace);
   if (own !== null) return own;
   var slot = output.targetConnection;
   if (!slot || slot.type !== Blockly.INPUT_VALUE) return null;
-  var slotShape = Blockly.CtPm.Shapes.typeShape(slot.check_);
+  var slotShape = Blockly.CtPm.Shapes.typeShape(slot.check_, block.workspace);
   if (slotShape === null || !Blockly.CtPm.Shapes.adoptsSlotShape_(block)) return null;
   return slotShape;
 };
@@ -299,6 +387,19 @@ Blockly.CtPm.Shapes.edgePath = function(shape, side, width) {
 Blockly.CtPm.Shapes.edgeWidth = function(block, shape, width) {
   block.ctPmCap_ = null;
   if (shape !== Blockly.OUTPUT_SHAPE_ROUND && shape !== Blockly.OUTPUT_SHAPE_HEXAGONAL) return width;
+  var cap = Blockly.CtPm.Shapes.capOf_(block);
+  if (cap === null || cap >= width) return width;
+  block.ctPmCap_ = {top: 2 * cap, run: 2 * (width - cap)};
+  return cap;
+};
+
+/**
+ * The end width a block gets around a tall child.
+ * @param {!Blockly.Block} block A block with an output
+ * @return {?number} The capped end width, or null if no child is tall (vanilla ends)
+ * @private
+ */
+Blockly.CtPm.Shapes.capOf_ = function(block) {
   var tall = false;
   var cap = Blockly.BlockSvg.MIN_BLOCK_Y_REPORTER / 2;
   for (var i = 0; i < block.inputList.length; i++) {
@@ -318,9 +419,52 @@ Blockly.CtPm.Shapes.edgeWidth = function(block, shape, width) {
     }
     cap = Math.max(cap, h / 2 + Blockly.BlockSvg.GRID_UNIT);
   }
-  if (!tall || cap >= width) return width;
-  block.ctPmCap_ = {top: 2 * cap, run: 2 * (width - cap)};
-  return cap;
+  return tall ? cap : null;
+};
+
+/**
+ * A square-ended block.
+ * @param {!Blockly.BlockSvg} block block
+ * @param {!Array} row row
+ * @param {number} shape The block's output shape
+ */
+Blockly.CtPm.Shapes.padSquareInRound = function(block, row, shape) {
+  if (shape !== Blockly.OUTPUT_SHAPE_ROUND || block.ctPmCap_) return;
+  var r = row.height / 2;
+  var clear = function(input) {
+    var child = input && !input.fieldRow.length && input.connection && input.connection.targetBlock();
+    if (!child || child.isShadow() || !child.rendered) return 0;
+    var childShape = child.getOutputShape();
+    if (childShape !== Blockly.OUTPUT_SHAPE_SQUARE && childShape !== Blockly.OUTPUT_SHAPE_ARRAY) return 0;
+    var d = Math.min(r, (child.height || 0) / 2);
+    return r - Math.sqrt(Math.max(0, r * r - d * d)) + Blockly.BlockSvg.GRID_UNIT / 2;
+  };
+  row.paddingStart = Math.max(row.paddingStart, clear(row[0]));
+  var last = row[row.length - 1];
+  if (last && last.connection) row.paddingEnd = Math.max(row.paddingEnd, clear(last));
+};
+
+/**
+ * Keep a capped block's contents out of its ends.
+ * @param {!Blockly.BlockSvg} block block
+ * @param {!Array} row row
+ * @param {number} shape The block's output shape
+ */
+Blockly.CtPm.Shapes.padCapped = function(block, row, shape) {
+  if (shape !== Blockly.OUTPUT_SHAPE_ROUND && shape !== Blockly.OUTPUT_SHAPE_HEXAGONAL) return;
+  var cap = Blockly.CtPm.Shapes.capOf_(block);
+  if (cap === null || cap >= row.height / 2) return;
+  var clear = cap + Blockly.BlockSvg.GRID_UNIT;
+  var first = row[0];
+  var firstChild = first && !first.fieldRow.length && first.connection && first.connection.targetBlock();
+  if (firstChild && Blockly.CtPm.Shapes.tallChild(first)) {
+    var nub = firstChild.ctPmNub_ ? firstChild.ctPmNub_.w : 0;
+    row.paddingStart = Math.max(row.paddingStart, clear - nub);
+  }
+  var last = row[row.length - 1];
+  if (last && last.connection && Blockly.CtPm.Shapes.tallChild(last)) {
+    row.paddingEnd = Math.max(row.paddingEnd, clear);
+  }
 };
 
 /**
@@ -346,14 +490,48 @@ Blockly.CtPm.Shapes.tallChild = function(input) {
  * @return {?number} Offset from the row's top, or null for vanilla (the middle)
  */
 Blockly.CtPm.Shapes.rowLine = function(row) {
-  for (var i = 0; i < row.length; i++) {
-    var input = row[i];
-    var child = input.connection && input.type === Blockly.INPUT_VALUE && input.connection.targetBlock();
-    if (child && child.rendered && child.ctPmLine_ !== null && child.ctPmLine_ !== undefined) {
-      return (row.height - child.height) / 2 + child.ctPmLine_;
+  return row.ctPmLine === null || row.ctPmLine === undefined ? null : row.ctPmLine;
+};
+
+/**
+ * Lay out the line of each inline row holding a C-shaped reporter.
+ * @param {!Array} rows rows
+ * @private
+ */
+Blockly.CtPm.Shapes.layoutRowLines_ = function(rows) {
+  for (var r = 0; r < rows.length; r++) {
+    var row = rows[r];
+    row.ctPmLine = null;
+    if (row.type !== Blockly.BlockSvg.INLINE) continue;
+    var tall = null;
+    var others = [];
+    for (var i = 0; i < row.length; i++) {
+      var input = row[i];
+      for (var f = 0; f < input.fieldRow.length; f++) {
+        var size = input.fieldRow[f].getSize ? input.fieldRow[f].getSize() : null;
+        if (size) others.push(size.height);
+      }
+      if (input.type !== Blockly.INPUT_VALUE || !input.connection) continue;
+      var child = input.connection.targetBlock();
+      if (child && child.rendered && !tall && child.ctPmLine_ !== null && child.ctPmLine_ !== undefined) {
+        tall = child;
+      } else {
+        others.push(child && child.rendered ? child.height : Blockly.BlockSvg.INPUT_SHAPE_HEIGHT);
+      }
     }
+    if (!tall) continue;
+    var pad = Math.max(0, (row.height - tall.height) / 2);
+    var line = tall.ctPmLine_ + pad;
+    for (var j = 0; j < others.length; j++) line = Math.max(line, others[j] / 2 + pad);
+    var bottom = line - tall.ctPmLine_ + tall.height;
+    for (var k = 0; k < others.length; k++) bottom = Math.max(bottom, line + others[k] / 2);
+    bottom += pad;
+    if (bottom > row.height) {
+      if (typeof rows.bottomEdge === 'number') rows.bottomEdge += bottom - row.height;
+      row.height = bottom;
+    }
+    row.ctPmLine = line;
   }
-  return null;
 };
 
 /**
@@ -385,7 +563,7 @@ Blockly.CtPm.Shapes.cappedEdgePath = function(shape, side, w, run) {
 (function() {
   var original = Blockly.Connection.prototype.getOutputShape;
   Blockly.Connection.prototype.getOutputShape = function() {
-    var shape = Blockly.CtPm.Shapes.typeShape(this.check_);
+    var shape = Blockly.CtPm.Shapes.typeShape(this.check_, this.sourceBlock_ && this.sourceBlock_.workspace);
     return shape === null ? original.call(this) : shape;
   };
 })();
@@ -397,7 +575,7 @@ Blockly.CtPm.Shapes.cappedEdgePath = function(shape, side, w, run) {
     if (this.type !== Blockly.INPUT_VALUE) return;
     var child = childConnection.getSourceBlock();
     if (!child.rendered || !this.getSourceBlock().rendered) return;
-    if (Blockly.CtPm.Shapes.typeShape(this.check_) === null) return;
+    if (Blockly.CtPm.Shapes.typeShape(this.check_, this.sourceBlock_ && this.sourceBlock_.workspace) === null) return;
     if (!Blockly.CtPm.Shapes.adoptsSlotShape_(child)) return;
     child.render();
   };
@@ -415,7 +593,7 @@ Blockly.CtPm.Shapes.nubShape_ = function(block) {
   for (var i = 0; i < block.inputList.length; i++) {
     if (block.inputList[i].type === Blockly.NEXT_STATEMENT) hasStack = true;
   }
-  if (!hasStack || Blockly.CtPm.Shapes.typeShape(block.outputConnection.check_) !== null) return null;
+  if (!hasStack || Blockly.CtPm.Shapes.typeShape(block.outputConnection.check_, block.workspace) !== null) return null;
   return block.outputShape_ === Blockly.OUTPUT_SHAPE_HEXAGONAL ?
       Blockly.OUTPUT_SHAPE_HEXAGONAL : Blockly.OUTPUT_SHAPE_ROUND;
 };
@@ -439,6 +617,7 @@ Blockly.CtPm.Shapes.nubPath = function(nub) {
     var rows = original.call(this, iconWidth);
     this.ctPmNub_ = null;
     this.ctPmLine_ = null;
+    Blockly.CtPm.Shapes.layoutRowLines_(rows);
     var shape = Blockly.CtPm.Shapes.nubShape_(this);
     if (shape === null || !rows.length) return rows;
     var w = rows[0].height / 2;
