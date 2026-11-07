@@ -89,6 +89,7 @@ Blockly.DataCategory = function(workspace) {
     Blockly.DataCategory.addHideList(xmlList, firstVariable);
   }
 
+  if (Blockly.CtPm) Blockly.CtPm.addDataCategoryBlocks(xmlList, workspace);
   return xmlList;
 };
 

@@ -268,6 +268,7 @@ Blockly.Procedures.flyoutCategory = function(workspace) {
     returnDocsButton.setAttribute('text', Blockly.Msg.PROCEDURES_DOCS);
     xmlList.unshift(returnDocsButton);
   }
+  Blockly.CtPm.Procedures.addLocalBlocks(xmlList, workspace);
 
   return xmlList;
 };
@@ -344,6 +345,7 @@ Blockly.Procedures.mutateCallersAndPrototype = function(name, ws, mutation) {
     var callers = Blockly.Procedures.getCallers(name,
         defineBlock.workspace, defineBlock, true /* allowRecursive */);
     callers.push(prototypeBlock);
+    var reportersBefore = Blockly.CtPm.Procedures.snapshotReporters(prototypeBlock);
     Blockly.Events.setGroup(true);
     for (var i = 0, caller; caller = callers[i]; i++) {
       var oldMutationDom = caller.mutationToDom();
@@ -361,6 +363,8 @@ Blockly.Procedures.mutateCallersAndPrototype = function(name, ws, mutation) {
             caller, 'mutation', null, oldMutation, newMutation));
       }
     }
+    Blockly.CtPm.Procedures.recolourDefinition(defineBlock, prototypeBlock, reportersBefore);
+    Blockly.CtPm.Procedures.applyLocalsFromMutation(defineBlock, mutation);
     Blockly.Events.setGroup(false);
   } else {
     alert('No define block on workspace'); // TODO decide what to do about this.
@@ -442,13 +446,16 @@ Blockly.Procedures.createProcedureDefCallback_ = function(workspace) {
 Blockly.Procedures.createProcedureCallbackFactory_ = function(workspace) {
   return function(mutation) {
     if (mutation) {
+      var ctPmLocals = Blockly.CtPm.Procedures.definitionXml(mutation);
       var blockText = '<xml>' +
           '<block type="procedures_definition">' +
+          ctPmLocals.mutation +
           '<statement name="custom_block">' +
           '<shadow type="procedures_prototype">' +
           Blockly.Xml.domToText(mutation) +
           '</shadow>' +
           '</statement>' +
+          ctPmLocals.inputs +
           '</block>' +
           '</xml>';
       var blockDom = Blockly.Xml.textToDom(blockText).firstChild;
@@ -505,8 +512,10 @@ Blockly.Procedures.editProcedureCallback_ = function(block) {
         block.getProcCode(), workspaceToSearch);
   }
   // Block now refers to the procedure prototype block, it is safe to proceed.
+  var mutation = block.mutationToDom();
+  Blockly.CtPm.Procedures.addLocalsForEditor(block, mutation);
   Blockly.Procedures.externalProcedureDefCallback(
-      block.mutationToDom(),
+      mutation,
       Blockly.Procedures.editProcedureCallbackFactory_(block)
   );
 };
@@ -727,12 +736,12 @@ Blockly.Procedures.getBlockReturnType = function(block) {
         // keep searching, because there may be other, non-boolean returns in this function definition.
         hasSeenBooleanReturn = true;
       } else {
-        return Blockly.PROCEDURES_CALL_TYPE_REPORTER;
+        return block.ctReturn_ || Blockly.PROCEDURES_CALL_TYPE_REPORTER;
       }
     }
   }
   if (hasSeenBooleanReturn) {
-    return Blockly.PROCEDURES_CALL_TYPE_BOOLEAN;
+    return block.ctReturn_ || Blockly.PROCEDURES_CALL_TYPE_BOOLEAN;
   } else {
     return Blockly.PROCEDURES_CALL_TYPE_STATEMENT;
   }

@@ -477,7 +477,7 @@ Blockly.FieldTextInput.prototype.resizeEditor_ = function() {
   var div = Blockly.WidgetDiv.DIV;
 
   var initialWidth;
-  if (this.sourceBlock_.isShadow()) {
+  if (this.editsWholeBlock_()) {
     initialWidth = this.sourceBlock_.getHeightWidth().width * scale;
   } else {
     initialWidth = this.size_.width * scale;
@@ -505,7 +505,7 @@ Blockly.FieldTextInput.prototype.resizeEditor_ = function() {
   width = Math.min(width, Blockly.BlockSvg.FIELD_WIDTH_MAX_EDIT * scale);
   // Add 1px to width and height to account for border (pre-scale)
   div.style.width = (width / scale + 1) + 'px';
-  div.style.height = (Blockly.BlockSvg.FIELD_HEIGHT_MAX_EDIT + 1) + 'px';
+  div.style.height = (this.editorHeight_() + 1) + 'px';
   div.style.transform = 'scale(' + scale + ')';
 
   // Use margin-left to animate repositioning of the box (value is unscaled).
@@ -522,6 +522,13 @@ Blockly.FieldTextInput.prototype.resizeEditor_ = function() {
   div.style.borderColor = strokeColour;
 
   var xy = this.getAbsoluteXY_();
+  if (((this.sourceBlock_.isShadow() && !this.editsWholeBlock_()) || this.ctPmCompact_) &&
+      !this.sourceBlock_.RTL) {
+    var target = this.getClickTarget_().getBoundingClientRect();
+    xy.x += (target.width - (width + scale)) / 2;
+    xy.y += (target.height - (this.editorHeight_() + 1) * scale) / 2;
+    div.style.marginLeft = '0px';
+  }
   // Account for border width, post-scale
   xy.x -= scale / 2;
   xy.y -= scale / 2;
@@ -560,6 +567,25 @@ Blockly.FieldTextInput.prototype.getBorderRadius = function() {
 };
 
 /**
+ * ct-pm.
+ * @return {number} Height in workspace units
+ * @private
+ */
+Blockly.FieldTextInput.prototype.editorHeight_ = function() {
+  return this.ctPmCompact_ ? this.size_.height : Blockly.BlockSvg.FIELD_HEIGHT_MAX_EDIT;
+};
+
+/**
+ * ct-pm.
+ * @return {boolean} True if the editor is sized to the block
+ * @private
+ */
+Blockly.FieldTextInput.prototype.editsWholeBlock_ = function() {
+  return this.sourceBlock_.isShadow() &&
+      this.getClickTarget_() === this.sourceBlock_.getSvgRoot();
+};
+
+/**
  * Close the editor, save the results, and start animating the disposal of elements.
  * @return {!Function} Closure to call on destruction of the WidgetDiv.
  * @private
@@ -583,13 +609,13 @@ Blockly.FieldTextInput.prototype.widgetDispose_ = function() {
     div.style.boxShadow = '';
     // Resize to actual size of final source block.
     if (thisField.sourceBlock_) {
-      if (thisField.sourceBlock_.isShadow()) {
+      if (thisField.editsWholeBlock_()) {
         var size = thisField.sourceBlock_.getHeightWidth();
         div.style.width = (size.width + 1) + 'px';
         div.style.height = (size.height + 1) + 'px';
       } else {
         div.style.width = (thisField.size_.width + 1) + 'px';
-        div.style.height = (Blockly.BlockSvg.FIELD_HEIGHT_MAX_EDIT + 1) + 'px';
+        div.style.height = (thisField.editorHeight_() + 1) + 'px';
       }
     }
     div.style.marginLeft = 0;

@@ -647,6 +647,8 @@ Blockly.Connection.prototype.targetBlock = function() {
  * @protected
  */
 Blockly.Connection.prototype.checkType_ = function(otherConnection) {
+  var ctPm = Blockly.CtPm ? Blockly.CtPm.checkType(this, otherConnection) : null;
+  if (ctPm !== null) return ctPm;
   if (!this.check_ || !otherConnection.check_) {
     // One or both sides are promiscuous enough that anything will fit.
     return true;

@@ -4,6 +4,20 @@
 
  - **Vertical blocks**: https://turbowarp.github.io/scratch-blocks/tests/vertical_playground_compressed.html
 
+## PenguinMod compatibility
+
+This repository (`ct_pm_*` block definitions) reproduces the behaviour of [PenguinMod](https://github.com/PenguinMod)'s blocks ("Advanced blocks") so that PenguinMod projects (`.pmp`) can be opened in CodeTorch. The implementation is written independently on top of TurboWarp; PenguinMod's source was used as a description of the behaviour and its VM as a test oracle. PenguinMod-Blocks is licensed under the GNU General Public License v3.0.
+
+Supported: PenguinMod as of the commits below. We don't track PenguinMod; projects using anything newer still open, but blocks we don't know yet become inert placeholders.
+
+| Repository | Commit | Date |
+|---|---|---|
+| [PenguinMod-Vm](https://github.com/PenguinMod/PenguinMod-Vm) | `50fddfed34f4eed9eef28ef32bc1022397d29f46` | 2026-10-26 |
+| [PenguinMod-Blocks](https://github.com/PenguinMod/PenguinMod-Blocks) | `de35ce5758aeda5aab0a9ad59736e1920205804b` | 2026-05-29 |
+| [PenguinMod-Render](https://github.com/PenguinMod/PenguinMod-Render) | `89a587aff84e0a62daf907fba464d7e02f995027` | 2026-05-29 |
+| [PenguinMod-Storage](https://github.com/PenguinMod/PenguinMod-Storage) | `687019085e83fc83d39f3b96b41f229e8d95d6bc` | 2026-02-21 |
+| [penguinmod.github.io](https://github.com/PenguinMod/penguinmod.github.io) (GUI) | `8d622ab3808c85413af85e1fac8ea7f6bb42a901` | 2026-10-20 |
+
 ## Local development
 
 Requires Node.js (16 or later), Python (2 or 3), and Java. It is known to work in these environments but should work in many others:
